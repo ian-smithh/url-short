@@ -4,6 +4,27 @@ const uid = require('custom-id');
 let URL = require('../models/URL');
 const path = require('path');
 
+/**
+ * @swagger
+ * /{url}:
+ *  get:
+ *      summary: redirects a short URL to the matching real one
+ *      description: finds the short URL in the DB and redirects to the long one.
+ *      parameters:
+ *          - name: url
+ *            type: string
+ *            in: path
+ *            description: the link to resolve to a real URL
+ * 
+ *      responses:
+ *          500:
+ *              description: error while redirecting
+ *          404:
+ *              description: no corresponding long URL exists to match the given short one
+ *          301:
+ *              description: redirecting to the real/long URL
+ */
+
 router.get('/:url', function(req,res){
     let requested = req.params.url;
     URL.findOne({short:requested}, function(error,doc){
@@ -12,7 +33,7 @@ router.get('/:url', function(req,res){
             res.sendStatus(500);
         }
         else if (!doc){
-            console.log("Cannot parse URL");
+            console.log("Cannot find URL");
             res.status(404).sendFile(path.join(__dirname,'../public/404.html'));
         }
         else{

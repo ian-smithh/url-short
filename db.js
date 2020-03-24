@@ -1,3 +1,7 @@
+/**
+ * @swagger
+ * Connects to the DB. Consoles messages indicating status.
+ */
 const mongoose = require('mongoose');
 const dbURL = "mongodb+srv://ian:dnQSgRz88cU4WxRY@cluster0-7y1qy.mongodb.net/URL-Shortener?retryWrites=true&w=majority";
 
