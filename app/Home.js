@@ -330,7 +330,8 @@ export default class ButtonAppBar extends React.Component {
                                 I need information about a shortened URL.
                             </DialogContentText>
                             <Typography variant="body1" gutterBottom>
-                                You will be allowed to view the destination and creation date.
+                                You will be allowed to view the destination and creation date. 
+                                If you provide the correct session ID, all of the information will be provided.
                             </Typography>
                             <TextField
                                 required
