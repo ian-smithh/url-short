@@ -27,7 +27,6 @@ import PublishIcon from '@material-ui/icons/Publish';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import HelpIcon from '@material-ui/icons/Help';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
-import Snackbar from '@material-ui/core/Snackbar';
 
 const URLRegex = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$");
 let theme = createMuiTheme({
