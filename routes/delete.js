@@ -7,7 +7,7 @@ let URL = require('../models/URL');
  * /delete/{shortURL}:
  *  delete:
  *      summary: finds and deletes a short URL
- *      description: searchs the DB for a matching shortened URL and deletes it.
+ *      description: searches the DB for a matching shortened URL and deletes it.
  *      parameters:
  *          - name: short
  *            type: string
@@ -54,7 +54,7 @@ router.delete('/delete/:short', function(req,res){
             console.log("Deleted",id);
             res.send(doc);
         }
-    })
+    });
 });
 
 module.exports = router;

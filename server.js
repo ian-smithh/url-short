@@ -21,6 +21,7 @@ let deleteURL = require('./routes/delete');
 let deleteSession = require('./routes/deleteSession');
 
 app.listen(PORT, () => console.info('Server has started on', PORT));
+console.info('Start the frontend in a separate terminal by running npm run frontend if you have not done so already');
 
 app.use('/', create);
 app.use('/', resolve);

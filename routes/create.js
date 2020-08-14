@@ -29,7 +29,7 @@ let URL = require('../models/URL');
  *                      schema:
  *                          type: object
  *                          properties:
- *                              original: 
+ *                              original:
  *                                  type: string
  *                              short:
  *                                  type: string
@@ -43,6 +43,8 @@ let URL = require('../models/URL');
 router.post('/create/:url', function (req, res) {
     let original = req.params.url.replace(/^https?:\/\//, '');
     let user = req.query.sessionID;
+
+    console.log(original);
 
     let short = uid({});
 

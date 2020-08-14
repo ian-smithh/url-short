@@ -5,7 +5,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
-import MenuIcon from '@material-ui/icons/Menu';
+import LaunchIcon from '@material-ui/icons/Launch';
 import IconButton from '@material-ui/core/IconButton';
 import TextField from '@material-ui/core/TextField';
 import Container from '@material-ui/core/Container';
@@ -27,6 +27,7 @@ import PublishIcon from '@material-ui/icons/Publish';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import HelpIcon from '@material-ui/icons/Help';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import Snackbar from '@material-ui/core/Snackbar';
 
 const URLRegex = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$");
 let theme = createMuiTheme({
@@ -60,29 +61,32 @@ export default class ButtonAppBar extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            urlFormText: null,
-            sessionFormText: null,
-            sessionID: null,
-            links: [],
-            loadSessionDialogue: false,
-            helpDialogue: false,
-            infoQueryShort: null,
-            infoQuerySession: null,
-            display: null,
+            urlFormText: null, //user entered url
+            sessionFormText: null, //user entered session ID
+            sessionID: null, //auto-generated session ID
+            links: [], //data from server
+            loadSessionDialogue: false, //show session info dialogue
+            helpDialogue: false, //show help dialogue
+            infoQueryShort: null, //user entered short link to view info about
+            infoQuerySession: null, //user entered session ID to unlock additional link info
         }
     }
 
     componentDidMount() {
         if (localStorage.getItem('sessionID')) {
-            this.setState({ sessionID: localStorage.getItem('sessionID'), 
-            sessionFormText: localStorage.getItem('sessionID') });
+            this.setState({
+                sessionID: localStorage.getItem('sessionID'),
+                sessionFormText: localStorage.getItem('sessionID')
+            });
             this.loadPreviousSession(localStorage.getItem('sessionID'));
         }
         else {
             this.setState({ sessionID: uuidv4() });
         }
     }
-
+    /**
+     * Check the input from the URL form
+     */
     validateInput() {
         if (this.state.urlFormText) {
             return !URLRegex.test(this.state.urlFormText);
@@ -91,25 +95,37 @@ export default class ButtonAppBar extends React.Component {
             return true;
         }
     }
-
+    /**
+     * Saves the session ID to the clipboard and returns it
+     */
     getID() {
+        navigator.clipboard.writeText(this.state.sessionID);
         return this.state.sessionID;
     }
-
+    /**
+     * Submits a long URL to the server for shortening/saving.
+     * Copies the full short URL to the clipboard.
+     */
     submitURL() {
-        axios.post('/api/create/' + this.state.urlFormText + "?sessionID=" + this.state.sessionID)
+        let strippedURL = this.state.urlFormText.replace(/^https?:\/\//, '');
+        axios.post('/api/create/' + strippedURL + "?sessionID=" + this.state.sessionID)
             .then(res => {
                 this.setState({ links: [...this.state.links, res.data] });
+                let fullURL = window.location.origin + "/api/" + res.data.short;
+                navigator.clipboard.writeText(fullURL);
             });
         this.setState({ urlFormText: null });
     }
-
+    /**
+     * Loads a previous session from the server.
+     * @param {String} id 
+     */
     loadPreviousSession(id) {
         let req = "/api/getSession/";
-        if(id){
+        if (id) {
             req += id;
         }
-        else{
+        else {
             req += this.state.sessionFormText;
         }
         axios.get(req).
@@ -136,6 +152,11 @@ export default class ButtonAppBar extends React.Component {
             });
     }
 
+    openItem(linkObject){
+        let fullURL = window.location.origin + "/api/" + linkObject.short;
+        window.open(fullURL);
+    }
+
     deleteSession() {
         axios.delete('/api/deleteSession/' + this.state.sessionID).
             then(res => {
@@ -150,12 +171,22 @@ export default class ButtonAppBar extends React.Component {
             });
         this.setState({ sessionID: uuidv4() });
     }
-
+    /**
+     * Save the session ID to browser local storage, if any shortened links were created.
+     * Saving a session with no links were shortened creates conflict with the server, so it is not allowed
+     */
     saveSessionToBrowser() {
-        localStorage.setItem("sessionID", this.state.sessionID);
-        alert("Saved session ID to Browser");
+        if(this.state.links.length < 1){
+            alert("Cannot save session with no saved links");
+        }
+        else{
+            localStorage.setItem("sessionID", this.state.sessionID);
+            alert("Saved session ID to Browser");
+        }
     }
-
+    /**
+     * Displays information about a link from the server
+     */
     queryInfo() {
         let query = '/api/info/' + this.state.infoQueryShort;
         if (this.state.infoQuerySession) {
@@ -166,13 +197,16 @@ export default class ButtonAppBar extends React.Component {
                 alert(this.readable(res.data));
             });
     }
-
-    readable(data){
+    /**
+     * Formats information about a URL from the server into readable form.
+     * @param {Object} data 
+     */
+    readable(data) {
         return "Original: " + data.original + "\n" +
-        "Short: " + data.short + "\n" + 
-        "Created: " + moment(data.created).format("dddd, MMMM Do YYYY, h:mm:ss a") + "\n" +
-        "Hit count: " + data.hit + "\n" + 
-        "Creator: " + data.creator;
+            "Short: " + data.short + "\n" +
+            "Created: " + moment(data.created).format("dddd, MMMM Do YYYY, h:mm:ss a") + "\n" +
+            "Hit count: " + data.hit + "\n" +
+            "Creator: " + data.creator;
     }
 
     render() {
@@ -181,13 +215,11 @@ export default class ButtonAppBar extends React.Component {
                 <ThemeProvider theme={theme}>
                     <AppBar position="static">
                         <Toolbar>
-                            <MenuButton edge="start" color="inherit" aria-label="menu">
-                                <MenuIcon />
-                            </MenuButton>
                             <Title variant="h6">
                                 URL Shortener
                             </Title>
-                            <Button color="inherit" onClick={() => this.setState({ loadSessionDialogue: true })}>Edit Session</Button>
+{/*                             <Button color="inherit" onClick={() => this.reload()}>Refresh</Button>
+ */}                            <Button color="inherit" onClick={() => this.setState({ loadSessionDialogue: true })}>Edit Session</Button>
                             <IconButton color="inherit" onClick={() => this.setState({ helpDialogue: true })}><HelpIcon /></IconButton>
                         </Toolbar>
                     </AppBar>
@@ -219,6 +251,7 @@ export default class ButtonAppBar extends React.Component {
                                         <TableCell align="right">Created</TableCell>
                                         <TableCell align="right">Hits</TableCell>
                                         <TableCell align="right">Delete</TableCell>
+                                        <TableCell align="right">Open</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -230,9 +263,8 @@ export default class ButtonAppBar extends React.Component {
                                             <TableCell align="right">{item.short}</TableCell>
                                             <TableCell align="right">{moment(item.created).fromNow()}</TableCell>
                                             <TableCell align="right">{item.hit}</TableCell>
-                                            <TableCell align="right"><IconButton aria-label="delete" onClick={() => this.deleteItem(item)}>
-                                                <DeleteIcon />
-                                            </IconButton></TableCell>
+                                            <TableCell align="right"><IconButton aria-label="delete" onClick={() => this.deleteItem(item)}><DeleteIcon /></IconButton></TableCell>
+                                            <TableCell align="right"><IconButton aria-label="launch" onClick={() => this.openItem(item)}><LaunchIcon /></IconButton></TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -272,7 +304,7 @@ export default class ButtonAppBar extends React.Component {
                                 color="primary"
                                 size="small"
                                 startIcon={<VpnKeyIcon />}
-                                onClick={() => alert(this.getID())}
+                                onClick={() => alert("Session ID: " + this.getID() + " was copied to the clipboard")}
                             >
                                 Get Session ID
                             </Button>
@@ -330,7 +362,7 @@ export default class ButtonAppBar extends React.Component {
                                 I need information about a shortened URL.
                             </DialogContentText>
                             <Typography variant="body1" gutterBottom>
-                                You will be allowed to view the destination and creation date. 
+                                You will be allowed to view the destination and creation date.
                                 If you provide the correct session ID, all of the information will be provided.
                             </Typography>
                             <TextField
