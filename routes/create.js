@@ -4,7 +4,7 @@ const uid = require('custom-id');
 let URL = require('../models/URL');
 /**
  * @swagger
- * /create/{url?sessionID}:
+ * /create/{?url?sessionID}:
  *  post:
  *      summary: Creates and saves a new shortened URL
  *      description: Adds a database entry representing a URL, including the original, an 8-character shortened version, the creation date, the session the URL was created in, and how many times the shortened URL has been accessed.
@@ -40,11 +40,9 @@ let URL = require('../models/URL');
  *                              creator:
  *                                  type: string
  */
-router.post('/create/:url', function (req, res) {
-    let original = req.params.url.replace(/^https?:\/\//, '');
+router.post('/create/', function (req, res) {
+    let original = req.query.url.replace(/^https?:\/\//,'');
     let user = req.query.sessionID;
-
-    console.log(original);
 
     let short = uid({});
 
@@ -54,7 +52,7 @@ router.post('/create/:url', function (req, res) {
         created: new Date(),
         hit: 0,
     });
-    if(user){
+    if (user) {
         shortened.creator = user;
     }
     shortened.save((error, document) => {

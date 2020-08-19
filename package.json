@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "server": "nodemon server.js",
-    "frontend": "webpack-dev-server --mode development",
+    "frontend": "webpack-dev-server --mode development"
   },
   "author": "Ian Smith",
   "license": "ISC",

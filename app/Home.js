@@ -107,7 +107,7 @@ export default class ButtonAppBar extends React.Component {
      */
     submitURL() {
         let strippedURL = this.state.urlFormText.replace(/^https?:\/\//, '');
-        axios.post('/api/create/' + strippedURL + "?sessionID=" + this.state.sessionID)
+        axios.post('/api/create/?url=' + strippedURL + "&sessionID=" + this.state.sessionID)
             .then(res => {
                 this.setState({ links: [...this.state.links, res.data] });
                 let fullURL = window.location.origin + "/api/" + res.data.short;
